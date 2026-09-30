@@ -18,6 +18,20 @@ def find_longest_match (searchWindow, lookaheadWindow):
         while item + length < SWSize and length < LWSize and searchWindow[item + length] == lookaheadWindow [length]:
             length += 1
 
+        #redundancies handling -- aaaa -- abcabc
+        
+        overloading = 0 #NewCounter for redundancies 
+        offset = SWSize - item  
+        
+        while length > 0 and length + overloading < LWSize:  #to insure the correct window.
+            target_index = item + ((length + overloading) % offset)   #5%3=2 -- to make the correct compartion.
+            
+            if target_index < SWSize and searchWindow[target_index] == lookaheadWindow[length + overloading]: ## if the comparied letter == the one in the offset search window 
+                overloading += 1 
+            else:
+                break
+        length += overloading
+        #----------------
         if length > bestLength:
             bestLength = length
             bestoffset = SWSize - item
