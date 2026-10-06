@@ -1,3 +1,6 @@
+import os
+import struct
+
 # search operation
 def find_longest_match (searchWindow, lookaheadWindow):
     
@@ -18,8 +21,8 @@ def find_longest_match (searchWindow, lookaheadWindow):
         while item + length < SWSize and length < LWSize and searchWindow[item + length] == lookaheadWindow [length]:
             length += 1
 
-        #redundancies handling -- aaaa -- abcabc
         
+        # redundancies handling -- aaaa -- abcabc
         overloading = 0 #NewCounter for redundancies 
         offset = SWSize - item  
         
@@ -31,6 +34,8 @@ def find_longest_match (searchWindow, lookaheadWindow):
             else:
                 break
         length += overloading
+
+
         #----------------
         if length > bestLength:
             bestLength = length
@@ -40,9 +45,6 @@ def find_longest_match (searchWindow, lookaheadWindow):
                 bestLength = length
                 bestoffset = SWSize - item
 
-        # overloading = 0
-        # while bestLength > 0 and length + overloading < LWSize and searchWindow[(item + length + overloading) % bestLength ] == lookaheadWindow [length + overloading]:
-        #     overloading += 1
 
 
     if len(lookaheadWindow) > bestLength:
@@ -50,8 +52,9 @@ def find_longest_match (searchWindow, lookaheadWindow):
     return [bestoffset,bestLength,""]
 
 
-def compress(originalData):
 
+
+def compress(originalData):
     # items initialization 
     pointer = 0
     searchWindow = []
@@ -69,21 +72,40 @@ def compress(originalData):
     # print("LW:", lookaheadWindow)
 
     tags = []
+    
+    with open("compressed_output.bin", "wb") as file:
+        pass
+
     while lookaheadWindow:
         tag = find_longest_match(searchWindow,lookaheadWindow) # [ offset , length, char ]
+
+        with open("compressed_output.bin", "ab") as output_file:
+            if(tag[2]):
+                next_char = tag[2].encode("utf-8")
+            else: 
+                next_char = b'\x00'
+            packed_tag = struct.pack(">HHc",tag[0], tag[1], next_char)
+
+            output_file.write(packed_tag)
+
         updatorS = pointer
         updatorL = pointer
 
         if tag[0] == 0 and tag[1] == 0:
 
+            ## DEBUGING
             # print("Pointer at 0 0 s", pointer)
+
+
             # update search window
             if searchWindow and len(searchWindow) == SWSize:
                 searchWindow.pop(0)
             searchWindow.insert(len(searchWindow), originalData[updatorS])
-        
-            # update lookahead window
+
+            ## DEBUGING
             # print("pointer at 0 0 l", pointer)
+
+            # update lookahead window
             pointer += tag[1] + 1
 
             updatorL = pointer
@@ -94,7 +116,7 @@ def compress(originalData):
             
             tags.insert(len(tags),tag)
         
-            #     # DEBUGING
+            ## DEBUGING
             # print("TAG:", tag)
             # print("POINTER:", pointer)
             # print("SW:", searchWindow)
@@ -111,9 +133,11 @@ def compress(originalData):
                 updatorS += 1
 
         pointer += tag[1] + 1
+        # print("P", pointer)
+
+
         # update lookahead window 
         updatorL = pointer
-        # print("P", pointer)
         lookaheadWindow.clear()
         for indx in range(LWSize): 
             if updatorL + indx < len(originalData):
@@ -127,16 +151,16 @@ def compress(originalData):
         # print("SW:", searchWindow)
         # print("LW:", lookaheadWindow)
         # print("-------------------------------")
-    
     return tags
 
 
 
-originalData = list(input("Enter your Text to compression:"))
-tags = compress(originalData)
+file_path = input("Enter the path of the file: ").strip()
 
-print(tags)
-
-
-
-
+if os.path.exists(file_path):
+    with open(file_path, "r", encoding="utf-8") as originFile:
+        originalData = originFile.read()
+        tags = compress(originalData)
+        print(tags)
+else:
+    print("Error, File path does not exist.")
