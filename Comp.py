@@ -34,6 +34,7 @@ def find_longest_match (searchWindow, lookaheadWindow):
             else:
                 break
         length += overloading
+        length = min(length, LWSize - 1)  # always leave a next char
 
 
         #----------------
