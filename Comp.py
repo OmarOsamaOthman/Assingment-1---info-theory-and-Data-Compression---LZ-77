@@ -156,12 +156,5 @@ def compress(originalData):
 
 
 if __name__ == "__main__":
-    file_path = input("Enter the path of the file: ").strip()
-    if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as originFile:
-            originalData = originFile.read()
-            tags = compress(originalData)
-            print("Generated Tags:", tags)
-    else:
-        print("Error: File path does not exist.")
+    compress_file()
 
